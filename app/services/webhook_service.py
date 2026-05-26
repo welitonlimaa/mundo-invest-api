@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.pipefy_client import simulate_update_fields_values
-from app.core.exceptions import ClienteNotFoundError, WebhookEventAlreadyProcessedError
+from app.core.exceptions import NotFoundError, WebhookEventAlreadyProcessedError
 from app.models.cliente import Cliente
 from app.models.webhook_event import WebhookEvent
 from app.schemas.webhook import WebhookPayload
@@ -34,7 +34,14 @@ async def process_webhook(payload: WebhookPayload, db: AsyncSession) -> dict:
     cliente = cliente_result.scalar_one_or_none()
 
     if not cliente:
-        raise ClienteNotFoundError(payload.cliente_email)
+        raise NotFoundError(
+            f"Cliente com e-mail '{payload.cliente_email}' não encontrado"
+        )
+
+    if cliente.pipefy_card_id != payload.card_id:
+        raise NotFoundError(
+            f"Card '{payload.card_id}' não encontrado para o cliente '{payload.cliente_email}'"
+        )
 
     prioridade = _calcular_prioridade(float(cliente.valor_patrimonio))
 
