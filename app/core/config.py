@@ -11,5 +11,15 @@ class Settings(BaseSettings):
     env: str = "local"
     database_url: str
 
+    pipefy_pipe_id: str
+    pipefy_field_id_nome_cliente: str
+    pipefy_field_id_email_cliente: str
+    pipefy_field_id_tipo_solicitacao: str
+    pipefy_field_id_valor_patrimonio: str
+    pipefy_field_id_status: str
+    pipefy_field_id_prioridade: str
+
+    api_key: str
+
 
 settings = Settings()
