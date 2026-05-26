@@ -5,6 +5,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from mangum import Mangum
 
+from app.api.middleware.api_key import ApiKeyMiddleware
+from app.api.routes.clientes import router as clientes_router
+from app.api.routes.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
@@ -21,6 +24,43 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="Mundo Invest API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="Mundo Invest API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(ApiKeyMiddleware)
+
+app.include_router(clientes_router)
+app.include_router(webhooks_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    first = errors[0] if errors else {}
+    field = " -> ".join(str(loc) for loc in first.get("loc", [])[1:])
+    msg = first.get("msg", "Erro de validação")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": "validation_error",
+            "message": f"Campo '{field}': {msg}",
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception", exc_info=exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "internal_server_error",
+            "message": "Erro interno do servidor",
+        },
+    )
+
 
 handler = Mangum(app, lifespan="off")
