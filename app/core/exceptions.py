@@ -1,7 +1,6 @@
-class ClienteNotFoundError(Exception):
-    def __init__(self, email: str):
-        self.email = email
-        super().__init__(f"Cliente com e-mail '{email}' não encontrado")
+class NotFoundError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
 
 
 class ClienteAlreadyExistsError(Exception):
