@@ -278,8 +278,8 @@ O DynamoDB resolve esse tipo de acesso com baixa latência e alta taxa de escrit
 
 ---
 
-## Arquitetura desenhada para essa POC
-
+## Arquitetura POC
+![arq_api_aws.jpg](arq_api_aws.jpg)
 
 
 ## Deploy real AWS
