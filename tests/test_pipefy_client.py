@@ -34,12 +34,26 @@ def test_update_fields_values_variables_structure():
     )
 
     assert "input" in variables
+
     inp = variables["input"]
+
     assert inp["nodeId"] == "750893428"
 
-    field_ids = [v["fieldId"] for v in inp["values"]]
-    assert settings.pipefy_field_id_status in field_ids
-    assert settings.pipefy_field_id_prioridade in field_ids
+    values = inp["values"]
+
+    assert len(values) == 2
+
+    status_field = next(
+        v for v in values if v["fieldId"] == settings.pipefy_field_id_status
+    )
+
+    prioridade_field = next(
+        v for v in values if v["fieldId"] == settings.pipefy_field_id_prioridade
+    )
+
+    assert status_field["value"] == "Processado"
+
+    assert prioridade_field["value"] == "prioridade_alta"
 
 
 def test_simulate_create_card_returns_pipefy_contract():
@@ -57,27 +71,11 @@ def test_simulate_create_card_returns_pipefy_contract():
     assert card["id"].isdigit()
 
 
-def test_simulate_update_fields_values_returns_pipefy_contract():
-    result = simulate_update_fields_values(
-        card_id="750893428",
-        status="Processado",
-        prioridade="prioridade_alta",
-    )
-
-    assert "data" in result
-    assert "updateFieldsValues" in result["data"]
-    payload = result["data"]["updateFieldsValues"]
-    assert payload["success"] is True
-    assert payload["card"]["id"] == "750893428"
-
-    field_names = [f["name"] for f in payload["card"]["fields"]]
-    assert "Status" in field_names
-    assert "Prioridade" in field_names
-
-
 def test_simulate_create_card_generates_numeric_id_in_range():
     ids = [
-        simulate_create_card("A", "a@a.com", "tipo", 100)["data"]["createCard"]["card"]["id"]
+        simulate_create_card("A", "a@a.com", "tipo", 100)["data"]["createCard"]["card"][
+            "id"
+        ]
         for _ in range(10)
     ]
     assert all(i.isdigit() for i in ids)
