@@ -18,13 +18,6 @@ mutation CreateCard($input: CreateCardInput!) {
 UPDATE_FIELDS_VALUES_MUTATION = """
 mutation UpdateFieldsValues($input: UpdateFieldsValuesInput!) {
   updateFieldsValues(input: $input) {
-    card {
-      id
-      fields {
-        name
-        value
-      }
-    }
     success
   }
 }
@@ -67,6 +60,7 @@ def build_update_fields_values_variables(
     status: str,
     prioridade: str,
 ) -> dict:
+
     return {
         "input": {
             "nodeId": card_id,
@@ -90,7 +84,12 @@ def simulate_create_card(
     tipo_solicitacao: str,
     valor_patrimonio: float,
 ) -> dict:
-    variables = build_create_card_variables(nome, email, tipo_solicitacao, valor_patrimonio)
+    variables = build_create_card_variables(
+        nome,
+        email,
+        tipo_solicitacao,
+        valor_patrimonio,
+    )
 
     logger.info(
         "Pipefy GraphQL mutation",
@@ -131,13 +130,6 @@ def simulate_update_fields_values(
     return {
         "data": {
             "updateFieldsValues": {
-                "card": {
-                    "id": card_id,
-                    "fields": [
-                        {"name": "Status", "value": status},
-                        {"name": "Prioridade", "value": prioridade},
-                    ],
-                },
                 "success": True,
             }
         }
