@@ -19,65 +19,140 @@ def _build_webhook_payload(card_id: str, email: str, event_id: str = "evt_123") 
 
 @pytest.mark.asyncio
 async def test_webhook_prioridade_alta_patrimonio_igual_limite(
-    client: AsyncClient, headers, valid_cliente_payload
+    client: AsyncClient,
+    headers,
+    valid_cliente_payload,
+    db_session,
 ):
     valid_cliente_payload["valor_patrimonio"] = 200000
-    create_response = await _create_cliente(client, headers, valid_cliente_payload)
+
+    create_response = await _create_cliente(
+        client,
+        headers,
+        valid_cliente_payload,
+    )
+
     card_id = create_response["data"]["createCard"]["card"]["id"]
 
     webhook_payload = _build_webhook_payload(
-        card_id, valid_cliente_payload["cliente_email"]
+        card_id,
+        valid_cliente_payload["cliente_email"],
     )
+
     response = await client.post(
-        "/webhooks/pipefy/card-updated", json=webhook_payload, headers=headers
+        "/webhooks/pipefy/card-updated",
+        json=webhook_payload,
+        headers=headers,
     )
 
     assert response.status_code == 200
-    fields = response.json()["data"]["updateFieldsValues"]["card"]["fields"]
-    prioridades = [f["value"] for f in fields if f["name"] == "Prioridade"]
-    assert prioridades[0] == "prioridade_alta"
+
+    payload = response.json()["data"]["updateFieldsValues"]
+
+    assert payload["success"] is True
+
+    from sqlalchemy import select
+    from app.models.cliente import Cliente
+
+    result = await db_session.execute(
+        select(Cliente).where(Cliente.email == valid_cliente_payload["cliente_email"])
+    )
+
+    cliente = result.scalar_one()
+
+    assert cliente.prioridade == "prioridade_alta"
 
 
 @pytest.mark.asyncio
 async def test_webhook_prioridade_alta_patrimonio_acima_limite(
-    client: AsyncClient, headers, valid_cliente_payload
+    client: AsyncClient,
+    headers,
+    valid_cliente_payload,
+    db_session,
 ):
     valid_cliente_payload["valor_patrimonio"] = 500000
-    create_response = await _create_cliente(client, headers, valid_cliente_payload)
+
+    create_response = await _create_cliente(
+        client,
+        headers,
+        valid_cliente_payload,
+    )
+
     card_id = create_response["data"]["createCard"]["card"]["id"]
 
     webhook_payload = _build_webhook_payload(
-        card_id, valid_cliente_payload["cliente_email"]
+        card_id,
+        valid_cliente_payload["cliente_email"],
     )
+
     response = await client.post(
-        "/webhooks/pipefy/card-updated", json=webhook_payload, headers=headers
+        "/webhooks/pipefy/card-updated",
+        json=webhook_payload,
+        headers=headers,
     )
 
     assert response.status_code == 200
-    fields = response.json()["data"]["updateFieldsValues"]["card"]["fields"]
-    prioridades = [f["value"] for f in fields if f["name"] == "Prioridade"]
-    assert prioridades[0] == "prioridade_alta"
+
+    payload = response.json()["data"]["updateFieldsValues"]
+
+    assert payload["success"] is True
+
+    from sqlalchemy import select
+    from app.models.cliente import Cliente
+
+    result = await db_session.execute(
+        select(Cliente).where(Cliente.email == valid_cliente_payload["cliente_email"])
+    )
+
+    cliente = result.scalar_one()
+
+    assert cliente.prioridade == "prioridade_alta"
 
 
 @pytest.mark.asyncio
 async def test_webhook_prioridade_normal_patrimonio_abaixo_limite(
-    client: AsyncClient, headers, valid_cliente_payload
+    client: AsyncClient,
+    headers,
+    valid_cliente_payload,
+    db_session,
 ):
     valid_cliente_payload["valor_patrimonio"] = 199999
-    create_response = await _create_cliente(client, headers, valid_cliente_payload)
+
+    create_response = await _create_cliente(
+        client,
+        headers,
+        valid_cliente_payload,
+    )
+
     card_id = create_response["data"]["createCard"]["card"]["id"]
 
     webhook_payload = _build_webhook_payload(
-        card_id, valid_cliente_payload["cliente_email"]
+        card_id,
+        valid_cliente_payload["cliente_email"],
     )
+
     response = await client.post(
-        "/webhooks/pipefy/card-updated", json=webhook_payload, headers=headers
+        "/webhooks/pipefy/card-updated",
+        json=webhook_payload,
+        headers=headers,
     )
 
     assert response.status_code == 200
-    fields = response.json()["data"]["updateFieldsValues"]["card"]["fields"]
-    prioridades = [f["value"] for f in fields if f["name"] == "Prioridade"]
-    assert prioridades[0] == "prioridade_normal"
+
+    payload = response.json()["data"]["updateFieldsValues"]
+
+    assert payload["success"] is True
+
+    from sqlalchemy import select
+    from app.models.cliente import Cliente
+
+    result = await db_session.execute(
+        select(Cliente).where(Cliente.email == valid_cliente_payload["cliente_email"])
+    )
+
+    cliente = result.scalar_one()
+
+    assert cliente.prioridade == "prioridade_normal"
 
 
 @pytest.mark.asyncio
