@@ -147,13 +147,6 @@ curl -X POST http://localhost:8000/webhooks/pipefy/card-updated \
 {
   "data": {
     "updateFieldsValues": {
-      "card": {
-        "id": "750893428",
-        "fields": [
-          { "name": "Status", "value": "Processado" },
-          { "name": "Prioridade", "value": "prioridade_alta" }
-        ]
-      },
       "success": true
     }
   }
